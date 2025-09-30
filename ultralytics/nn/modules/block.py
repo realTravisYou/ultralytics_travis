@@ -52,6 +52,7 @@ __all__ = (
     "PSA",
     "SCDown",
     "TorchVision",
+    "TimmVision",
 )
 
 
@@ -2029,3 +2030,61 @@ class SAVPE(nn.Module):
         aggregated = score.transpose(-2, -3) @ x.reshape(B, self.c, C // self.c, -1).transpose(-1, -2)
 
         return F.normalize(aggregated.transpose(-2, -3).reshape(B, Q, -1), dim=-1, p=2)
+    
+
+
+class TimmVision(nn.Module):
+    
+    """
+    TimmVision module to allow loading any timm model with optional features_only output.
+
+    Attributes:
+        m (nn.Module): The loaded timm model or feature extractor.
+    """
+
+    def __init__(
+        self,
+        model: str,
+        pretrained: bool = True,
+        unwrap: bool = True,
+        truncate: int = 2,
+        split: bool = False,
+    ):
+        """
+        Args:
+            model (str): Name of the timm model to load.
+            pretrained (bool): Whether to load pretrained weights.
+            unwrap (bool): Whether to unwrap into Sequential layers.
+            truncate (int): Number of layers to remove from the end if unwrap=True.
+            split (bool): If True, returns intermediate feature maps using timm's features_only.
+        """
+        import timm 
+        super().__init__()
+
+        self.split = split
+
+        if split:
+            # Use timm's features_only to get intermediate features
+            self.m = timm.create_model(model, pretrained=pretrained, features_only=True)
+        else:
+            # Standard model
+            self.m = timm.create_model(model, pretrained=pretrained)
+            if unwrap:
+                # Break model into children layers
+                layers = list(self.m.children())
+                if isinstance(layers[0], nn.Sequential):  # nested Sequential
+                    layers = [*list(layers[0].children()), *layers[1:]]
+                # Truncate last `truncate` layers
+                self.m = nn.Sequential(*(layers[:-truncate] if truncate else layers))
+            else:
+                # Remove classifier / head
+                for attr in ["classifier", "fc", "head"]:
+                    if hasattr(self.m, attr):
+                        setattr(self.m, attr, nn.Identity())
+
+    def forward(self, x: torch.Tensor):
+        if self.split:
+            # timm features_only returns list of feature maps
+            return self.m(x)
+        else:
+            return self.m(x)
