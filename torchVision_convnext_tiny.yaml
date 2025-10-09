@@ -1,0 +1,8 @@
+nc: 1
+backbone:
+    - [-1, 1, TorchVision, [768, convnext_tiny, DEFAULT, True, 2, True]] # Multi-output
+head:
+    - [0, 1, Index, [192, 4]] # Select 4th feature map (192 channels)
+    - [0, 1, Index, [384, 6]] # Select 6th feature map (384 channels)
+    - [0, 1, Index, [768, 8]] # Select 8th feature map (768 channels)
+    - [[1, 2, 3], 1, Detect, [nc]] # Multi-scale detection

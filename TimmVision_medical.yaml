@@ -1,0 +1,8 @@
+nc: 1
+backbone:
+    - [-1, 1, TimmVision, [960, mobilenetv4_conv_small.e1200_r224_in1k, True, True, 2, True]] # Multi-output
+head:
+    - [0, 1, Index, [64, 2]] # Select 2th feature map (64 channels)
+    - [0, 1, Index, [96, 3]] # Select 3th feature map (96 channels)
+    - [0, 1, Index, [960, 4]] # Select 4th feature map (960 channels)
+    - [[1, 2, 3], 1, Detect, [nc]] # Multi-scale detection
