@@ -1685,9 +1685,11 @@ def parse_model(d, ch, verbose=True):
             c2 = args[0]
             c1 = ch[f]
             args = [*args[1:]]
-        elif m is frozenset({TimmVision, Index}):
-            c1, c2 = ch[f], args[0]  # input channels, output channels
-            args = [*args[1:]]
+        # Add this condition in the parse_model() function
+        elif m is TimmVision:
+                    c2 = args[0]  # c2是TimmVision模型输出特征的通道数
+                    c1 = ch[f]  # c1是输入通道数
+                    args = [*args[1:]]
         else:
             c2 = ch[f]
 

@@ -1,6 +1,6 @@
-# custom_model.yaml
-nc: 102
+# convnext_backbone_timm.yaml
+nc: 102   # The caltech101 dataset have 102 classes
 backbone:
-    - [-1, 1, TimmVision, [convnext_tiny, True, True, 2, False]]
+    - [-1, 1, TimmVision, [640, convnext_nano, True, True, 2, False]]  # Using TimmVision to load ConvNeXt backbone
 head:
     - [-1, 1, Classify, [nc]]
